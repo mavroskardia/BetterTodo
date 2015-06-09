@@ -20,14 +20,16 @@ namespace BetterToDo
             checkBoxShowTextOnDesktop.Checked = Settings.Default.ShowOnDesktop;
         }
 
-        private void buttonColorPicker_Click(object sender, System.EventArgs e)
+        private void buttonColorPicker_Click(object sender, EventArgs e)
         {
-            ColorDialog cd = new ColorDialog();
+            var cd = new ColorDialog();
             if (cd.ShowDialog() == DialogResult.OK)
+            {
                 panelFontColor.BackColor = cd.Color;
+            }
         }
 
-        private void buttonCancel_Click(object sender, System.EventArgs e)
+        private void buttonCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
         }
@@ -40,21 +42,27 @@ namespace BetterToDo
                 return false;
             }
 
-            if (!Directory.Exists(Path.GetDirectoryName(textBoxFileLocation.Text)))
+            if (Directory.Exists(Path.GetDirectoryName(textBoxFileLocation.Text)))
             {
-                MessageBox.Show("Must specify a valid file location.", "Invalid File", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
+                return true;
             }
 
-            return true;
+            MessageBox.Show("Must specify a valid file location.", "Invalid File", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            
+            return false;
         }
 
         private void buttonSave_Click(object sender, System.EventArgs e)
         {
-            if (!IsValidInput()) return;
+            if (!IsValidInput())
+            {
+                return;
+            }
 
             if (tmpFont != null)
+            {
                 Settings.Default.Font = tmpFont;
+            }
 
             Settings.Default.FileLocation = textBoxFileLocation.Text;
             Settings.Default.FontColor = panelFontColor.BackColor;
@@ -65,30 +73,30 @@ namespace BetterToDo
 
         private void buttonBrowse_Click(object sender, System.EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.CheckFileExists = false;
-            ofd.CheckPathExists = true;
+            var ofd = new OpenFileDialog { CheckFileExists = false, CheckPathExists = true };
 
             if (ofd.ShowDialog() == DialogResult.OK)
+            {
                 textBoxFileLocation.Text = ofd.FileName;
+            }
         }
 
         private void buttonBrowseFont_Click(object sender, System.EventArgs e)
         {
-            FontDialog fd = new FontDialog();
-            fd.AllowVectorFonts = false;
-            fd.AllowSimulations = false;
-            fd.AllowVerticalFonts = false;
-            fd.FontMustExist = true;
+            var fd = new FontDialog
+            {
+                AllowVectorFonts = false,
+                AllowSimulations = false,
+                AllowVerticalFonts = false,
+                FontMustExist = true
+            };
 
             try
             {
-                if (fd.ShowDialog() == DialogResult.OK)
-                {
-                    tmpFont = fd.Font;
-                    textBoxFont.Text = fd.Font.Name;
-                    textBoxFont.Font = fd.Font;
-                }
+                if (fd.ShowDialog() != DialogResult.OK) return;
+                tmpFont = fd.Font;
+                textBoxFont.Text = fd.Font.Name;
+                textBoxFont.Font = fd.Font;
             }
             catch (Exception)
             {

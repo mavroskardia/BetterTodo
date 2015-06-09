@@ -9,11 +9,11 @@ namespace BetterToDo
     public partial class MainForm : Form
     {
         private GlobalHotkeys globalHotKeys;
-        private bool dirtyTextBox = false;
         private TodoFile todoFile;
         private TodoFileWatcher todoFileWatcher;
         private DesktopDisplay desktopDisplay;
-
+        private bool dirtyTextBox;
+        
         public delegate void TodoTextInitializedHandler();
 
         public event TodoTextInitializedHandler TodoTextInitialized;
@@ -29,7 +29,7 @@ namespace BetterToDo
 
             if (!InitialSetupComplete()) return;
 
-			System.Console.Write(Environment.OSVersion);
+			Console.Write(Environment.OSVersion);
 			
             if (Settings.Default.ShowOnDesktop)
             {
@@ -38,7 +38,7 @@ namespace BetterToDo
             }
 
             InitializeTodoText();
-            Settings.Default.PropertyChanged += new PropertyChangedEventHandler(Default_PropertyChanged);
+            Settings.Default.PropertyChanged += Default_PropertyChanged;
         }
 
         protected override void OnLoad(EventArgs e)
@@ -55,27 +55,28 @@ namespace BetterToDo
 
         private bool InitialSetupComplete()
         {
-            if (string.IsNullOrEmpty(Settings.Default.FileLocation))
+            if (!string.IsNullOrEmpty(Settings.Default.FileLocation) || new Options().ShowDialog() == DialogResult.OK)
             {
-                if (new Options().ShowDialog() != DialogResult.OK)
-                {
-                    MessageBox.Show("Cannot start application without specifying todo file.", "Error Starting " + Text,
-                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Exit(false);
-                    return false;
-                }
+                return true;
             }
-            return true;
+
+            MessageBox.Show("Cannot start application without specifying todo file.", "Error Starting " + Text,
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            
+            Exit(false);
+            
+            return false;
         }
 
         protected override void WndProc(ref Message m)
         {
             base.WndProc(ref m);
 
-            if (m.Msg == GlobalHotkeys.WM_HOTKEY)
+            if (m.Msg != GlobalHotkeys.WM_HOTKEY) return;
+
+            if ((short) m.WParam == globalHotKeys.HotkeyID)
             {
-                if ((short)m.WParam == globalHotKeys.HotkeyID)
-                    ToggleActivate();
+                ToggleActivate();
             }
         }
 
@@ -125,7 +126,9 @@ namespace BetterToDo
         private void MainForm_Resize(object sender, EventArgs e)
         {
             if (FormWindowState.Minimized == WindowState)
+            {
                 Hide();
+            }
         }
 
         private void notifyIcon_DoubleClick(object sender, EventArgs e)
@@ -143,21 +146,25 @@ namespace BetterToDo
         private void fileSaveTimer_Tick(object sender, EventArgs e)
         {
             if (todoFile.Dirty)
-                todoText.Text = todoFile.GetFileContents();
-
-            if (dirtyTextBox)
             {
-                todoFile.SaveFileContents(todoText.Text);
-                dirtyTextBox = false;
+                todoText.Text = todoFile.GetFileContents();
             }
+
+            if (!dirtyTextBox) return;
+            todoFile.SaveFileContents(todoText.Text);
+            dirtyTextBox = false;
         }
 
         private void todoText_TextChanged(object sender, EventArgs e)
         {
             if (todoFile.Dirty)
+            {
                 todoFile.Dirty = false;
+            }
             else
+            {
                 dirtyTextBox = true;
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -181,7 +188,9 @@ namespace BetterToDo
         private void todoText_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape)
+            {
                 Close();
+            }
         }
 
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -227,14 +236,17 @@ namespace BetterToDo
         public void Exit(bool saveCurrentFile)
         {
             if (saveCurrentFile)
+            {
                 todoFile.SaveFileContents(todoText.Text);
+            }
+
             globalHotKeys.UnregisterGlobalHotKey();
             Dispose();
         }
 
         private void strikeoutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Font f = todoText.SelectionFont;
+            var f = todoText.SelectionFont;
             todoText.SelectionFont = new Font(f, FontStyle.Strikeout);
         }
     }

@@ -11,9 +11,9 @@ namespace BetterToDo
         public DesktopDisplay(MainForm mainForm)
         {
             this.mainForm = mainForm;
-            Settings.Default.PropertyChanged += new PropertyChangedEventHandler(Default_PropertyChanged);
+            Settings.Default.PropertyChanged += Default_PropertyChanged;
             InitializeComponent();
-            this.mainForm.TodoTextInitialized += delegate() { textDisplay.Text = mainForm.TodoText.Text; };
+            this.mainForm.TodoTextInitialized += () => textDisplay.Text = mainForm.TodoText.Text;
             InitializeTextBox();
         }
 

@@ -5,7 +5,7 @@ namespace BetterToDo
 {
     public class TodoFileWatcher
     {
-        private FileSystemWatcher fileSystemWatcher;
+        private readonly FileSystemWatcher fileSystemWatcher;
 
         public FileSystemWatcher FileSystemWatcher
         {
@@ -14,12 +14,18 @@ namespace BetterToDo
 
         public TodoFileWatcher(TodoFile todoFile)
         {
-            string path = Path.GetDirectoryName(Settings.Default.FileLocation);
-            string filename = Path.GetFileName(Settings.Default.FileLocation);
-            fileSystemWatcher = new FileSystemWatcher(path, filename);
-            fileSystemWatcher.EnableRaisingEvents = true;
-            fileSystemWatcher.Changed += delegate(object sender, FileSystemEventArgs e) { todoFile.Dirty = true; };
-            fileSystemWatcher.Deleted += delegate(object sender, FileSystemEventArgs e) { todoFile.Dirty = true; };
+            var path = Path.GetDirectoryName(Settings.Default.FileLocation);
+            var filename = Path.GetFileName(Settings.Default.FileLocation);
+
+            if (path == null)
+            {
+                // something went wrong with the settings
+                return;
+            }
+
+            fileSystemWatcher = new FileSystemWatcher(path, filename) {EnableRaisingEvents = true};
+            fileSystemWatcher.Changed += delegate { todoFile.Dirty = true; };
+            fileSystemWatcher.Deleted += delegate { todoFile.Dirty = true; };
         }
     }
 }

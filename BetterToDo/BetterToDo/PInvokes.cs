@@ -7,10 +7,10 @@ namespace BetterToDo
     {
         public static void SetInBackground(IntPtr hWnd)
         {
-            uint options = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW;
+            const uint options = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW;
             SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, 0, 0, options);
 
-            int windowStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+            var windowStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
             SetWindowLong(hWnd, GWL_EXSTYLE, windowStyle | WS_EX_TOOLWINDOW);
         }
 

@@ -32,13 +32,8 @@ namespace BetterToDo
         }
 
         public IntPtr Handle;
-        private short hotkeyId;
 
-        public short HotkeyID
-        {
-            get { return hotkeyId; }
-            private set { hotkeyId = value; }
-        }
+        public short HotkeyID { get; private set; }
 
         public void RegisterGlobalHotKey(int hotkey, int modifiers, IntPtr handle)
         {
@@ -54,15 +49,19 @@ namespace BetterToDo
             try
             {
                 // use the GlobalAddAtom API to get a unique ID (as suggested by MSDN docs)
-                string atomName = Thread.CurrentThread.ManagedThreadId.ToString("X8") + GetType().FullName;
+                var atomName = Thread.CurrentThread.ManagedThreadId.ToString("X8") + GetType().FullName;
                 HotkeyID = GlobalAddAtom(atomName);
                 if (HotkeyID == 0)
+                {
                     throw new Exception("Unable to generate unique hotkey ID. Error: " +
                                         Marshal.GetLastWin32Error());
+                }
 
                 // register the hotkey, throw if any error
                 if (!RegisterHotKey(Handle, HotkeyID, modifiers, hotkey))
+                {
                     throw new Exception("Unable to register hotkey. Error: " + Marshal.GetLastWin32Error());
+                }
             }
             catch (Exception e)
             {
@@ -74,13 +73,12 @@ namespace BetterToDo
 
         public void UnregisterGlobalHotKey()
         {
-            if (HotkeyID != 0)
-            {
-                UnregisterHotKey(Handle, HotkeyID);
-                // clean up the atom list
-                GlobalDeleteAtom(HotkeyID);
-                HotkeyID = 0;
-            }
+            if (HotkeyID == 0) return;
+
+            UnregisterHotKey(Handle, HotkeyID);
+            // clean up the atom list
+            GlobalDeleteAtom(HotkeyID);
+            HotkeyID = 0;
         }
 
         public void Dispose()

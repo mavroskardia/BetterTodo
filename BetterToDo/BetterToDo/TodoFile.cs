@@ -5,13 +5,15 @@ namespace BetterToDo
 {
     public class TodoFile
     {
-        public bool Dirty = false;
+        public bool Dirty;
 
         public TodoFile()
         {
-            string f = Settings.Default.FileLocation;
+            var f = Settings.Default.FileLocation;
             if (!File.Exists(f))
+            {
                 File.WriteAllText(f, "");
+            }
         }
 
         public string GetFileContents()

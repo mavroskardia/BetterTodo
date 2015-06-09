@@ -25,15 +25,13 @@ namespace BetterToDo
                 }
                 else
                 {
-                    Process current = Process.GetCurrentProcess();
+                    var current = Process.GetCurrentProcess();
 
-                    foreach (Process process in Process.GetProcessesByName(current.ProcessName))
+                    foreach (var process in Process.GetProcessesByName(current.ProcessName))
                     {
-                        if (process.Id != current.Id)
-                        {
-                            PInvokes.SetForegroundWindow(process.MainWindowHandle);
-                            break;
-                        }
+                        if (process.Id == current.Id) continue;
+                        PInvokes.SetForegroundWindow(process.MainWindowHandle);
+                        break;
                     }
                 }
                
